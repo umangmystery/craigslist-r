@@ -1,4 +1,4 @@
-# craigslist-rhttps://drive.google.com/file/d/1tGx79T6GW3HJtWEVx_0Sk-A11vkDZH9M/view?usp=sharing
+https://drive.google.com/file/d/1tGx79T6GW3HJtWEVx_0Sk-A11vkDZH9M/view?usp=sharing
 
 
 
@@ -45,6 +45,27 @@ To check whether there is any duplicate ID present or not, if yes we can drop th
 
 Column : Price
 As we check the price column, we can find 0 values and extreme values as min and max, obviously these values are outliers. Now According to many data available on google, we can say that the price of a used car can be max $150000 depending on cars like Ferarri, Lamborghini, but i would still keep it till $200000 as Max. And lowest being $100. Rest of the amounted rows will be dropped.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Price : Description
 
 Column : Manufacturer
