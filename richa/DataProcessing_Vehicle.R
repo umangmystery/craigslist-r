@@ -157,7 +157,7 @@ kurtosis_odometer
 #--------------------------------------------
 # Frequency of used vehicles based on price
 price_freq <- Vehicle_Data %>%
-  select(id, Price_Cat) %>%
+  dplyr::select(id, Price_Cat) %>%
   group_by(Price_Cat) %>%
   summarise(count = n()) %>%
   arrange(desc(count)) %>%
@@ -173,7 +173,7 @@ price_freq_val
 
 # Frequency of used vehicles listed based on condition
 cond_freq <- Vehicle_Data %>%
-  select(id, condition) %>%
+  dplyr::select(id, condition) %>%
   group_by(condition) %>%
   summarise(count = n()) %>%
   arrange(desc(count)) %>%
@@ -226,22 +226,22 @@ ggplot(Vehicle_Data, aes(x=price)) + geom_histogram(fill="red",color="white",alp
 
 #bar graph for price based on condition of the car
 Vehicle_Data %>%
-  select(id, price, condition) %>%
+  dplyr::select(id, price, condition) %>%
   group_by(condition) %>%
   drop_na() %>%
   summarise (Average = mean(price)) %>%
   arrange(desc(Average)) %>%
-ggplot(aes(x=Average, y=fct_inorder(condition))) + geom_bar(stat="identity", fill="grey")+ xlab("Average Price") + ylab("Condition of the car")+ geom_text(aes(label = round(Average,3)),hjust=1, vjust = 2.0, colour = "black")+ggtitle("Average Price for each Condition")
+  ggplot(aes(x=Average, y=fct_inorder(condition))) + geom_bar(stat="identity", fill="grey")+ xlab("Average Price") + ylab("Condition of the car")+ geom_text(aes(label = round(Average,3)),hjust=1, vjust = 2.0, colour = "black")+ggtitle("Average Price for each Condition")
 
 
 #Area graph for Average price for last 30 years
 Vehicle_Data %>%
-  select(id, price, year) %>%
+  dplyr::select(id, price, year) %>%
   filter(year>="1990-01-01") %>%
   group_by(year) %>%
   drop_na() %>%
   summarise(Average = mean(price)) %>%
-ggplot(aes(x=year, y=Average)) +
+  ggplot(aes(x=year, y=Average)) +
   geom_area( fill="#39a4a5", alpha=0.4) +
   geom_line(color="#69c4a2", size=2) +
   geom_point(size=2, color="#69c4c2") +
@@ -251,14 +251,14 @@ ggplot(aes(x=year, y=Average)) +
 
 #tree map for Average Price of each Manufacture
 Vehicle_Data %>%
-  select(id, price, manufacturer) %>%
+  dplyr::select(id, price, manufacturer) %>%
   group_by(manufacturer) %>%
   drop_na() %>%
   summarise(Average = mean(price)) %>%
   arrange(desc(Average)) %>%
   ggplot(aes(area = Average,
-                 fill = Average,
-                 label=manufacturer)) +geom_treemap()+
+             fill = Average,
+             label=manufacturer)) +geom_treemap()+
   geom_treemap_text(colour = "black",
                     place = "top")+scale_fill_distiller(palette = "RdPu", direction = 1)+
   ggtitle("Average Price of each Manufacture")
@@ -266,7 +266,7 @@ Vehicle_Data %>%
 
 #Line plot for number of cars listed each year
 Vehicle_Data %>%
-  select(id,year) %>%
+  dplyr::select(id,year) %>%
   group_by(year) %>%
   drop_na() %>%
   summarise(Count = n()) %>%
@@ -278,7 +278,7 @@ Vehicle_Data %>%
 
 #Pie chart showing number of vehicle of each type listed
 Vehicle_Data %>%
-  select(id,price,type) %>%
+  dplyr::select(id,price,type) %>%
   group_by(type) %>%
   drop_na() %>%
   summarise(Count = n()) %>%
@@ -291,7 +291,7 @@ Vehicle_Data %>%
 
 #Map to show price for each state
 mapdata <- Vehicle_Data %>%
-  select(id, price, `US STATE`) %>%
+  dplyr::select(id, price, `US STATE`) %>%
   group_by(`US STATE`) %>%
   drop_na() %>%
   summarise(Average = mean(price)) %>%
@@ -303,7 +303,7 @@ us_states <- map_data("state")
 #for labels
 us_states_labels<-us_states %>% 
   left_join(mapdata, by=c("region"="US STATE")) %>%
-  select(long, lat, group, Average, region ) %>%
+  dplyr::select(long, lat, group, Average, region ) %>%
   group_by(`region`) %>%
   summarise(across(long:Average, ~ mean(.x, na.rm = TRUE)))
 
@@ -311,8 +311,8 @@ us_states %>%
   left_join(mapdata, by=c("region"="US STATE")) %>%
   ggplot(aes(x=long,y=lat,group=group, fill=Average))+ggtitle("State-wise Average price of vehicles")+
   geom_polygon(color = "gray90", size = 0.1)+geom_text(data=us_states_labels,aes(long, lat, label = region), size=2, vjust = 0, nudge_y = -0.05,hjust = 0, nudge_x = -0.7)+scale_fill_distiller(palette = "YlGnBu", direction = 1)+theme(axis.title.x=element_blank(),axis.text.x=element_blank(),axis.ticks.x=element_blank(),axis.title.y=element_blank(),axis.text.y=element_blank(),axis.ticks.y=element_blank())
-  
-  
+
+
 #scatter plot for price and odometer
 #Vehicle_Data %>%
 #  select(id,year,Price_Cat,price,odometer) %>%
@@ -332,7 +332,7 @@ us_states %>%
 #H0 -> Used vehicles listed for each state are equally distributed
 #Ha -> Used vehicles listed for each state are not equally distributed
 Chi_state <- Vehicle_Data %>%
-  select(state) %>%
+  dplyr::select(state) %>%
   group_by(state) %>%
   drop_na() %>%
   summarise(Count = n())
@@ -342,9 +342,13 @@ chisq.test(Chi_state$Count,p = rep(1/nrow(Chi_state), nrow(Chi_state)))
 
 
 #goodness of fit
-plot(Vehicle_Data$price, pch=1)
-hist(Vehicle_Data$price)
-plotdist(Vehicle_Data$price, histo = TRUE, demp = TRUE)
+# visualizing the data
+ggplot(Vehicle_Data, aes(price)) +
+  geom_histogram(bins = 50, color = 'Black', fill = 'steelblue')
+plotdist(Vehicle_Data$price, histo = TRUE, demp = TRUE, breaks = 50)
+
+# descriptive statistics
+descdist(Vehicle_Data$price)
 
 #Price is continuous , so evaluating gamma, m=normal, lognormal, exponential and uniform distributions
 fit_g  <- fitdist(Vehicle_Data$price/100, "gamma")
@@ -352,20 +356,159 @@ fit_n  <- fitdist(Vehicle_Data$price/100, "norm")
 fit_ln <- fitdist(Vehicle_Data$price/100, "lnorm")
 fit_e  <- fitdist(Vehicle_Data$price/100, "exp")
 fit_u <- fitdist(Vehicle_Data$price/100, "unif")
-gofstat(list(fit_g,fit_n,fit_ln,fit_u,fit_e), fitnames = c("gamma", "normal", "lognormal","exponential","uniform"))
+gofstat(list(fit_g,fit_n,fit_ln,fit_u,fit_e), fitnames = c("gamma", "normal", "lognormal","uniform","exponential"))
 
 #plotting to find the best fit
 par(mfrow=c(2,2))
-plot.legend <- c("gamma","normal","lognormal","exponential","uniform")
-denscomp(list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend) #gamma
-cdfcomp (list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend) #gamma
-qqcomp  (list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend) #unifrom
-ppcomp  (list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend) #gamma
+plot.legend <- c("gamma","normal","lognormal","uniform","exponential")
+denscomp(list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend)
+cdfcomp (list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend) 
+qqcomp  (list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend) 
+ppcomp  (list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend) 
 #overall gamma is the best fit
 
 
 #--------------------------------------------
-#Statistical Test
+#Statistical Tests
+
+#1: one sample Z-test
+#Question: Is the population price and the sample price equal?
+#H0 -> population mean = sample mean
+#H1 -> population mean != sample mean
+
+z.test1 <- function(sample, pop){
+  sample_mean = mean(sample) 
+  pop_mean = mean(pop)
+  n = length(sample) 
+  var = var(pop)
+  z = (sample_mean - pop_mean) / sqrt((var/(n))) 
+  result<-data.frame("Z_calc"=z,"P_value"=pnorm(z))
+  return(result)
+}
+set.seed(100)
+vehicleSample <- sample_n(Vehicle_Data, 1000)
+
+sample     = vehicleSample$price
+population = Vehicle_Data$price
+
+z.test1(sample, population)
+##As P_value > 0.05 we fail to reject the null hypothesis, therefore population price and the sample price are equal
+#this forms the basis that further analysis can be done using sample instead of population, since mean values are equal
+
+
+
+#2: two sample Z-test
+##Question: Is the price of two random samples generated from the data equal or not?
+#H0 -> sample mean 1 = sample mean 2 (difference is zero)
+#H1 -> sample mean 1 != sample mean 2
+
+z_test2 = function(s1, s2, var_s1, var_s2){
+  n_s1 = length(s1)
+  n_s2 = length(s2)
+  z = ((mean(s1) - mean(s2))-0) / (sqrt((var_s1)/n_s1 + (var_s2)/n_s2))
+  result<-data.frame("Zcal"=z,"P_value"=pnorm(z))
+  return(result)
+}
+set.seed(100)
+vehicle_1 <- Vehicle_Data[1:round(nrow(Vehicle_Data)/2),] #select all columns and rows from 1 to 49286  
+vehicle_2 <- Vehicle_Data[(round(nrow(Vehicle_Data)/2)+1):nrow(Vehicle_Data),] #select all columns and rows from 49287 to 98571
+vehicle_1_sample <- sample_n(vehicle_1, 1000) #sample 1000 rows from the first sample
+vehicle_2_sample <- sample_n(vehicle_2, 1000) #sample 1000 rows from the second sample
+
+sample1<-vehicle_1_sample$price
+sample2<-vehicle_2_sample$price
+var_1<-var(vehicle_1_sample$price)
+var_2<-var(vehicle_2_sample$price)
+
+z_test2(sample1,sample2,var_1,var_2)
+##As P_value > 0.05 we fail to reject the null hypothesis, therefore price of two random samples generated from the data are equal
+
+
+
+
+#3: Two sample t-test
+##Question: Is the mean odometer of two random samples generated from the data equal or not?
+#H0 -> sample mean 1 = sample mean 2 (difference is zero)
+#H1 -> sample mean 1 != sample mean 2
+
+set.seed(100)
+vehicle_1 <- Vehicle_Data[1:round(nrow(Vehicle_Data)/2),] #select all columns and rows from 1 to 49286  
+vehicle_2 <- Vehicle_Data[(round(nrow(Vehicle_Data)/2)+1):nrow(Vehicle_Data),] #select all columns and rows from 49287 to 98571
+vehicle_1_sample <- sample_n(vehicle_1, 1000) #sample 1000 rows from the first sample
+vehicle_2_sample <- sample_n(vehicle_2, 1000) #sample 1000 rows from the second sample
+
+sample1<-vehicle_1_sample$odometer
+sample2<-vehicle_2_sample$odometer
+
+t.test(x=sample1,y=sample2)
+#As P_value > 0.05 we fail to reject the null hypothesis, therefore odometer of two random samples generated from the data are equal
+
+
+
+
+#4 Two sample t-test -
+# Question: Compare if the mean price of cars in ca is equivalent to the mean of cars in ny
+#H0 -> sample mean 1 = sample mean 2 (difference is zero)
+#H1 -> sample mean 1 != sample mean 2
+
+vehicle_ca <- Vehicle_Data %>%
+  dplyr::select(id,price,state) %>%
+  filter(state == 'ca')
+
+vehicle_ny <- Vehicle_Data %>%
+  dplyr::select(id,price,state) %>%
+  filter(state == 'ny')
+
+sample1<-vehicle_ca$price
+sample2<-vehicle_ny$price
+
+t.test(x=sample1,y=sample2)
+#As P_value < 0.05 we reject the null hypothesis, therefore mean price of cars in ca is not equivalent to the mean of cars in ny
+#Could be because of income, weather, population etc
+
+
+
+
+#5 Two sample proportion  -
+##Question: Comparing the proportion of price of automatic with manual
+#H0 -> proportion 1 = proportion 2
+#H1 -> proportion 1 != proportion 2
+
+n1 <-length(which(Vehicle_Data$transmission == 'automatic'))
+n2 <-length(which(Vehicle_Data$transmission == 'manual'))
+
+vehicle_automatic <- Vehicle_Data %>%
+  dplyr::select(id,price,transmission) %>%
+  filter(transmission == 'automatic' & price > 50000) %>%
+  nrow()
+
+vehicle_manual <- Vehicle_Data %>%
+  dplyr::select(id,price,transmission) %>%
+  filter(transmission == 'manual' & price > 50000) %>%
+  nrow()
+
+prop.test(x=c(vehicle_automatic, vehicle_manual),n=c(n1, n2))
+#As P_value < 0.05 we reject the null hypothesis, therefore proportion of price of automatic and manual are not equal
+#shows us that proportion of automatic to manual is different, further analysis can be done to know which transmission type is more prefered and y
+
+
+#6 Ratio of Variances test (two-sample test)- F-test
+## Question: Check whether the ratio of variance of odometer of like new condition and new condition is equal 
+
+#H0 -> variance 1 = variance 2
+#H1 -> variance 1 != variance 2
+
+vehicle_new <- Vehicle_Data %>%
+  dplyr::select(id,odometer,condition) %>%
+  filter(condition == 'new')
+
+vehicle_likenew <- Vehicle_Data %>%
+  dplyr::select(id,odometer,condition) %>%
+  filter(condition == 'like new')
+
+var.test(x=vehicle_new$odometer,y=vehicle_likenew$odometer)
+##As P_value < 0.05 we reject the null hypothesis, therefore the ratio of variance of odometer of like new condition and new condition is not equal
+
 
 #--------------------------------------------
 #Advance Analysis
