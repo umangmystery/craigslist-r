@@ -540,13 +540,15 @@ Vehicle_Data_predition$condition <- as.numeric(Vehicle_Data$condition)
 Vehicle_Data_predition$title_status <- as.numeric(Vehicle_Data$title_status)
 Vehicle_Data_predition$transmission <- as.numeric(Vehicle_Data$transmission)
 Vehicle_Data_predition$fuel <- as.numeric(Vehicle_Data$fuel)
+Vehicle_Data_predition$size <- as.numeric(Vehicle_Data$size)
+Vehicle_Data_predition$drive <- as.numeric(Vehicle_Data$drive)
 
 #correlation matrix
-Vehicle_Data_predition <- Vehicle_Data_predition %>% dplyr::select(price,condition,cylinders,fuel,odometer,title_status,transmission)
+Vehicle_Data_predition <- Vehicle_Data_predition %>% dplyr::select(price,condition,cylinders,fuel,odometer,title_status,transmission,size,drive)
 head(Vehicle_Data_predition)
 par(mfrow=c(1,1))
 rquery.cormat(Vehicle_Data_predition  %>% select_if(is.numeric))
-#shows that odometer, cylinders and fuel have high correlation with price
+#shows that odometer, cylinders, drive and fuel have high correlation with price
 
 
 
