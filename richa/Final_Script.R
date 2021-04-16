@@ -10,7 +10,6 @@
 #install.packages("devtools")
 #install.packages("treemapify")
 #install.packages("maps")
-#install.packages("readxl")
 #install.packages("lubridate")
 #install.packages("e1071")
 
@@ -26,7 +25,6 @@ library(caret)
 library(devtools)
 library(treemapify)
 library(maps)
-library(readxl)
 library(lubridate)
 library(e1071)
 
@@ -36,7 +34,8 @@ source("http://www.sthda.com/upload/rquery_cormat.r")
 
 #-----------------------------------------
 #Reading the data file
-Vehicle_Data<-read_xlsx("vehicles_changed.xlsx")
+Vehicle_Data<-read.csv("vehicles.csv")
+Vehicle_Data <- dplyr::select(Vehicle_Data,id,price,year,manufacturer, model, condition, cylinders, fuel, odometer, title_status, transmission, drive,size, type, paint_color,state)
 StateName <- read_xlsx("StateNames.xlsx")
 
 #Converting few column values to factors
@@ -82,17 +81,9 @@ ggplot(Vehicle_Data, aes(x="", y = price)) +
 
 #Checking null values
 sort(sapply(Vehicle_Data, function(x) sum(is.na(x))))
-
+unique(Vehicle_Data$condition)
 #Removing null values from the columns which we will need for hypothesis
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$year),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$title_status),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$transmission),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$fuel),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$type),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$drive),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$condition),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$size),]
-Vehicle_Data <- Vehicle_Data[!is.na(Vehicle_Data$cylinders),]
+Vehicle_Data <- filter(Vehicle_Data, title_status!="", transmission!="",fuel!="",type!="",size!="",cylinders!="",drive!="",condition!="")
 
 
 #Getting full State Names
@@ -104,7 +95,7 @@ Vehicle_Data$Price_Cat <- cut(Vehicle_Data$price, breaks = c(0,5000,10000,15000,
 
 
 ################-----------
-## Data Visulizations
+## Data Visualizations
 #histogram for price
 ggplot(Vehicle_Data, aes(x=price)) + geom_histogram(fill="red",color="white",alpha=0.7,bins = 20)+
   ggtitle("Price Distribution")
@@ -119,8 +110,8 @@ Vehicle_Data %>%
   arrange(desc(Avg)) %>% 
   ggplot(aes(x=Avg, y=fuel)) + 
   geom_bar(stat="identity", fill="dark orange") +
-  xlab("Fuel Type") + ylab("Avg Price") + geom_text(aes(label = round(Avg,3)),hjust=1, vjust = 2.0, colour = "black")+ggtitle("Average Price for Fuel Type")
-#disel has highest average price
+  xlab("Fuel Type") + ylab("Avg Price") + geom_text(aes(label = round(Avg,3)),hjust=1, vjust = 2.0, size = 3, colour = "black")+ggtitle("Average Price for Fuel Type")
+#diesel has highest average price
 
 #bar graph showing Average price of vehicles based on cylinder number
 Vehicle_Data %>% 
@@ -132,7 +123,7 @@ Vehicle_Data %>%
   arrange(desc(Avg)) %>% 
   ggplot(aes(x=Avg, y=cylinders)) + 
   geom_bar(stat="identity", fill="dark blue") +
-  xlab("Number of Cylinders") + ylab("Avg Price") + geom_text(aes(label = round(Avg,3)),hjust=1, vjust = 2.0, colour = "white")+ggtitle("Average Price for cylinder numbers")
+  xlab("Number of Cylinders") + ylab("Avg Price") + geom_text(aes(label = round(Avg,3)),hjust=1, vjust = 2.0, size = 2,colour = "white")+ggtitle("Average Price for cylinder numbers")
 #12 cylinders has the highest average price
 
 
@@ -149,7 +140,7 @@ Vehicle_Data %>%
   drop_na() %>%
   summarise (Average = mean(price)) %>%
   arrange(desc(Average)) %>%
-  ggplot(aes(x=Average, y=fct_inorder(condition))) + geom_bar(stat="identity", fill="grey")+ xlab("Average Price") + ylab("Condition of the car")+ geom_text(aes(label = round(Average,3)),hjust=1, vjust = 2.0, colour = "black")+ggtitle("Average Price for each Condition")
+  ggplot(aes(x=Average, y=condition)) + geom_bar(stat="identity", fill="grey")+ xlab("Average Price") + ylab("Condition of the car")+ geom_text(aes(label = round(Average,3)),hjust=1, vjust = 2.0,size = 3, colour = "black")+ggtitle("Average Price for each Condition")
 
 
 #Area graph for Average price for last 30 years
@@ -439,7 +430,7 @@ var_1<-var(vehicle_1_sample$price)
 var_2<-var(vehicle_2_sample$price)
 
 z_test2(sample1,sample2,var_1,var_2)
-##As P_value < 0.05 we reject the null hypothesis, therefore price of two random samples generated from the data are not equal
+##As P_value > 0.05 we fail to reject the null hypothesis, therefore price of two random samples generated from the data are equal
 
 
 
@@ -554,6 +545,7 @@ rquery.cormat(Vehicle_Data_predition  %>% select_if(is.numeric))
 
 #linear Regression
 #Splitting into Train & Test Data
+set.seed(800)
 partition <- createDataPartition(Vehicle_Data_predition$price, p=0.7, list=FALSE)
 trainingdata <- Vehicle_Data_predition[partition,]
 testingdata <- Vehicle_Data_predition[-partition,]
