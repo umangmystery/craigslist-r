@@ -24,11 +24,11 @@ library(e1071)
 # Importing this package for plotting correlation matrix
 source("http://www.sthda.com/upload/rquery_cormat.r")
 
-
+# Set the directory to where the raw data and state names files are located
 setwd("C:\\Northeastern\\Probs & Stats\\Project")
 
 
-
+# Importing the dataset
 cars_df <- read.csv('vehicles.csv', header = TRUE, sep=",")
 head(cars_df, 2)
 StateName <- read_xlsx("StateNames.xlsx")
@@ -36,7 +36,7 @@ StateName <- read_xlsx("StateNames.xlsx")
 colnames(cars_df)
 
 
-
+# Filtering out important columns
 cars_df <- dplyr::select(cars_df, id, region, price, year, manufacturer,
                              model, condition, cylinders, fuel,
                              odometer, title_status, transmission, drive,
@@ -48,8 +48,6 @@ head(cars_df, 2)
 # Skimming data to get good overview 
 df_skimmed <- skim(cars_df)
 
-#view(df_skimmed)
-
 
 # Observing the missing values in the dataset
 colSums(is.na(cars_df))
@@ -57,13 +55,11 @@ colSums(is.na(cars_df))
 # Plotting the missing data to get a better idea
 vis_miss(cars_df, warn_large_data = FALSE)
 
-
-### PLotting
-# Sorting 
+# Sorting WRT odometer 
 cars_df = cars_df[order(-cars_df$odometer),]
 head(cars_df,2)
 
-# Odometer and price are 2 key columns 
+# Odometer and price are 2 key columns. Hence visualising the spread of data
 ggplot(cars_df, aes(x="", y = odometer)) + 
   geom_boxplot(fill="#0c4c8a") +
   labs(y = "Odometer in Thousands") +
@@ -89,18 +85,13 @@ cars_df <- filter(cars_df, condition!="",
                              price!="",type!="")
 
 vis_miss(cars_df, warn_large_data = FALSE)
+# Here we can see all missing values are removed
 
-max(cars_df$odometer)
-min(cars_df$odometer)
-min(cars_df$price)
-
-max(cars_df$price)
-
+# Cleaning more columns 
 cars_df$odometer[is.na(cars_df$odometer)] <- 0
 cars_df$odometer[is_empty(cars_df$odometer)] <- 0
 
-# Is this needed ? 
-# sort(sapply(Vehicle_Data, function(x) sum(is.na(x))))#doubt
+
 cars_df <- cars_df[!is.na(cars_df$odometer),]
 cars_df <- cars_df[!is.na(cars_df$year),]
 cars_df <- cars_df[!is.na(cars_df$title_status),]
@@ -116,37 +107,43 @@ cars_df <- cars_df[!is.na(cars_df$cylinders),]
 head(cars_df,2)
 
 
+# Getting an idea of how the cars are listed as per year
 ggplot(cars_df, aes(x=year))+
   geom_histogram(bins=50, stat="count")
 
 
-
+# There very few cars listed before 1950
 cars_df <- filter(cars_df, (year>1950))
 
 #Getting full State Names
 cars_df <- left_join(cars_df, StateName, by = c("state"="ShortForm"))
 
 #Creating 6 bins/categories for Price
-cars_df$Price_Cat <- cut(cars_df$price, breaks = c(0,5000,10000,15000,20000,40000,max(cars_df$price)), labels = c("0-5k", "5-10k", "10-15k","15-20k","20-40k","VeryHigh"))
+cars_df$Price_Cat <- cut(cars_df$price, breaks = c(
+  0,5000,10000,15000,20000,40000,max(cars_df$price)), 
+  labels = c("0-5k", "5-10k", "10-15k","15-20k","20-40k","VeryHigh"))
 
 
-
+## Data Visualizations
 ################-----------
-## Data Visulizations
 
+# Visualizing the distibution and variability of Odometer
 ggplot(cars_df, aes(x="", y = odometer)) + 
   geom_boxplot(fill="#0c4c8a") +
   labs(y = "Odometer in Thousands") +
   scale_y_continuous( labels = function(x) x / 1000) + # Dividing values by 1000 
   theme_minimal() 
 
+
+# Visualizing the distibution and variability of Price
 ggplot(cars_df, aes(x="", y = price)) + 
   geom_boxplot(fill="#0c4c8a") +
   labs(y = "Price") +
-  #scale_y_continuous( labels = function(x) x / 1000) + # Dividing values by 1000 
   theme_minimal()
 
-ggplot(cars_df, aes(x=price)) + geom_histogram(fill="red",color="white",alpha=0.7,bins = 20)+
+# Histogram of the price and count
+ggplot(cars_df, aes(x=price)) + 
+  geom_histogram(fill="red",color="white",alpha=0.7,bins = 20)+
   ggtitle("Price Distribution")
 
 
@@ -174,12 +171,6 @@ cars_df %>%
   xlab("Number of Cylinders") + ylab("Avg Price")
 
 
-# Mostly need to remove this as we cant definitively say anything
-ggplot(cars_df, aes(x=year, y=price, color=odometer)) +
-  geom_point() +
-  scale_color_gradientn(colours = rainbow(5))
-
-
 #bar graph for price based on condition of the car
 cars_df %>%
   dplyr::select(id, price, condition) %>%
@@ -187,7 +178,10 @@ cars_df %>%
   drop_na() %>%
   summarise (Average = mean(price)) %>%
   arrange(desc(Average)) %>%
-  ggplot(aes(x=Average, y=fct_inorder(condition))) + geom_bar(stat="identity", fill="grey")+ xlab("Average Price") + ylab("Condition of the car")+ geom_text(aes(label = round(Average,3)),hjust=1, vjust = 2.0, colour = "black")+ggtitle("Average Price for each Condition")
+  ggplot(aes(x=Average, y=fct_inorder(condition))) + geom_bar(stat="identity", fill="grey")+ 
+  xlab("Average Price") + ylab("Condition of the car")+ 
+  geom_text(aes(label = round(Average,3)),hjust=1, vjust = 2.0, colour = "black")+
+  ggtitle("Average Price for each Condition")
 
 
 #Area graph for Average price for last 30 years
@@ -301,6 +295,7 @@ range_odometer
 #Variance
 variance_price <- var(cars_df$price)
 variance_price
+
 variance_odometer <- var(cars_df$odometer)
 variance_odometer
 
@@ -331,73 +326,8 @@ kurtosis_odometer
 
 
 
-##-----------
 # Probability 
 #--------------------------------------------
-#Statistical Analysis
-#mean
-mean_price <- mean(cars_df$price)
-mean_price
-mean_odometer <- mean(cars_df$odometer)
-mean_odometer
-
-#median
-median_price <- median(cars_df$price)
-median_price
-median_odometer <- median(cars_df$odometer)
-median_odometer
-
-#Min and Max
-min_price <- min(cars_df$price)
-min_price
-max_price <- max(cars_df$price)
-max_price
-
-min_odometer <- min(cars_df$odometer)
-max_odometer <- max(cars_df$odometer)
-min_odometer
-max_odometer
-
-#Range
-range_price <- range(cars_df$price)
-range_price
-range_odometer <- range(cars_df$odometer)
-range_odometer
-
-#Variance
-variance_price <- var(cars_df$price)
-variance_price
-variance_odometer <- var(cars_df$odometer)
-variance_odometer
-
-#Standard Variance
-sd_price <- sd(cars_df$price)
-sd_price
-sd_odometer <- sd(cars_df$odometer)
-sd_odometer
-
-#Coefficient of Variation 
-cov_price <- (sd_price/mean_price)*100
-cov_price
-cov_odometer <- (sd_odometer/mean_odometer)*100
-cov_odometer
-
-#Skewness
-skewness_price <- skewness(cars_df$price)
-skewness_price
-skewness_odometer <- skewness(cars_df$odometer) #highly skewed
-skewness_odometer
-
-#Kurtosis
-kurtosis_price <- kurtosis(cars_df$price)
-kurtosis_price
-kurtosis_odometer <- kurtosis(cars_df$odometer)
-kurtosis_odometer
-
-
-
-#--------------------------------------------
-# Extra NA value found. To be removed.
 # PDF & CDF Caclulation
 # Frequency of used vehicles based on price
 price_freq <- cars_df %>%
@@ -458,28 +388,9 @@ cor(price_freq$count, cond_freq$count)
 
 
 
-
+## Goodness of Fit
 ###-----------------
-## Statistical Test
-## Test of Hypothesis
-#Chisquare
-#Null hypothesis (H0): There is no significant difference between the observed and the expected value.
-#Alternative hypothesis (Ha): There is a significant difference between the observed and the expected value.
 
-#Chisquare for state
-#H0 -> Used vehicles listed for each state are equally distributed
-#Ha -> Used vehicles listed for each state are not equally distributed
-Chi_state <- cars_df %>%
-  dplyr::select(state) %>%
-  group_by(state) %>%
-  drop_na() %>%
-  summarise(Count = n())
-
-
-chisq.test(Chi_state$Count,p = rep(1/nrow(Chi_state), nrow(Chi_state)))
-
-
-#goodness of fit
 # visualizing the data
 ggplot(cars_df, aes(price)) +
   geom_histogram(bins = 50, color = 'Black', fill = 'steelblue')
@@ -506,8 +417,9 @@ ppcomp  (list(fit_g,fit_n,fit_ln,fit_u,fit_e), legendtext = plot.legend)
 #overall gamma is the best fit
 
 
-#--------------------------------------------
+
 #Statistical Tests
+#--------------------------------------------
 
 #1: one sample Z-test
 #Question: Is the population price and the sample price equal?
@@ -548,10 +460,11 @@ z_test2 = function(s1, s2, var_s1, var_s2){
   return(result)
 }
 set.seed(100)
-vehicle_1 <- cars_df[1:round(nrow(cars_df)/2),] #select all columns and rows from 1 to 49286  
-vehicle_2 <- cars_df[(round(nrow(cars_df)/2)+1):nrow(cars_df),] #select all columns and rows from 49287 to 98571
+vehicle_1 <- cars_df[1:round(nrow(cars_df)/2),] 
+vehicle_2 <- cars_df[(round(nrow(cars_df)/2)+1):nrow(cars_df),] 
 vehicle_1_sample <- sample_n(vehicle_1, 1000) #sample 1000 rows from the first sample
 vehicle_2_sample <- sample_n(vehicle_2, 1000) #sample 1000 rows from the second sample
+
 
 sample1<-vehicle_1_sample$price
 sample2<-vehicle_2_sample$price
@@ -570,8 +483,8 @@ z_test2(sample1,sample2,var_1,var_2)
 #H1 -> sample mean 1 != sample mean 2
 
 set.seed(100)
-vehicle_1 <- cars_df[1:round(nrow(cars_df)/2),] #select all columns and rows from 1 to 49286  
-vehicle_2 <- cars_df[(round(nrow(cars_df)/2)+1):nrow(cars_df),] #select all columns and rows from 49287 to 98571
+vehicle_1 <- cars_df[1:round(nrow(cars_df)/2),]   
+vehicle_2 <- cars_df[(round(nrow(cars_df)/2)+1):nrow(cars_df),] 
 vehicle_1_sample <- sample_n(vehicle_1, 1000) #sample 1000 rows from the first sample
 vehicle_2_sample <- sample_n(vehicle_2, 1000) #sample 1000 rows from the second sample
 
@@ -580,7 +493,6 @@ sample2<-vehicle_2_sample$odometer
 
 t.test(x=sample1,y=sample2)
 #As P_value > 0.05 we fail to reject the null hypothesis, therefore odometer of two random samples generated from the data are equal
-
 
 
 
@@ -626,8 +538,10 @@ vehicle_manual <- cars_df %>%
   nrow()
 
 prop.test(x=c(vehicle_automatic, vehicle_manual),n=c(n1, n2))
+
 #As P_value < 0.05 we reject the null hypothesis, therefore proportion of price of automatic and manual are not equal
 #shows us that proportion of automatic to manual is different, further analysis can be done to know which transmission type is more prefered and y
+
 
 
 #6 Ratio of Variances test (two-sample test)- F-test
@@ -649,10 +563,12 @@ var.test(x=vehicle_new$odometer,y=vehicle_likenew$odometer)
 
 
 
-### ------
-# Advanced Analytics 
+
+# Advanced Analytics
+### -----------------
 
 
+# Converting categorical variables to numeric values 
 no_of_cy <- cars_df$cylinders
 head(no_of_cy)
 no_of_cy <- as_factor(no_of_cy)
@@ -666,7 +582,7 @@ head(cars_df)
 
 status <- as_factor(cars_df$title_status)
 cars_df$title_status <- as.numeric(status)
-head(new_cars_df)
+head(cars_df)
 
 trans <- as_factor(cars_df$transmission)
 cars_df$transmission <- as.numeric(trans)
@@ -676,26 +592,26 @@ fuel <- as_factor(cars_df$fuel)
 cars_df$fuel <- as.numeric(fuel)
 head(cars_df)
 
-
+# Plotting the correlation matrix to identify the features to train the model
 rquery.cormat(cars_df  %>% select_if(is.numeric))
 
-
+# Creating a new DF for training and testing the model
 df_learn <- dplyr::select(cars_df, price, cylinders, condition,
                           transmission, title_status, fuel, year, odometer)
 head(df_learn)
 
 
 # Set seed and split data in train and test
-
 #Splitting into Train & Test Data
 set.seed(837)
 partition <- createDataPartition(y = df_learn$price, p=0.7, list=FALSE)
 trainingdata = df_learn[partition,]
 test <- df_learn[-partition,]
 
-# Splitting Training and Validatation data
+# Splitting Training and Validation data
 set.seed(837)
 partition_training <- createDataPartition(y=trainingdata$price, p=0.8, list=FALSE)
+
 training <- trainingdata[partition_training,]
 validation <- trainingdata[-partition_training,]
 
@@ -707,80 +623,36 @@ model <- lm(price ~ odometer + cylinders + transmission + year +
 
 summary(model)
 plot(model)
+# R Squared value
+summary(model)$r.squared
 
-p <- predict(model, validation)
-error <- (p- validation$price)
-RMSE_Model <- sqrt(mean(error^2))
+# Calculating the error vs the validation data
+validation$predict <- predict(model, validation)
+validation$error <- (validation$predict - validation$price)
+RMSE_Model_validation <- sqrt(mean(validation$error^2))
 
-ptest <- predict(model, test)
-error2 <- (ptest - test$price)
-RMSE_New <- sqrt(mean(error2^2))
+# Calculating the error vs the testing data 
+test$predict <- predict(model, test)
+test$error <- (test$predict - test$price)
+RMSE_Model_testing <- sqrt(mean(test$error^2))
 
+# Creating error and accuracy table 
 method <- c("Test Train Split")
-ModelRMSE <- c(RMSE_Model)
-NewData_RMSE <- c(RMSE_New)
+Validation_RMSE <- c(RMSE_Model_validation)
+Testing_RMSE <- c(RMSE_Model_validation)
+r_sqd <- c(summary(model)$r.squared)
 
-error_table <- data.frame(method, ModelRMSE, NewData_RMSE)
+error_table <- data.frame(method, Validation_RMSE, Testing_RMSE, r_sqd)
 
 error_table
 
+# Plotting the predicted value vs the actual value to visualize how well the model was fitted
+test %>%
+  dplyr::select(price,predict) %>%
+  ggplot(aes(x=price, y=predict))+geom_point(size=1)+geom_abline(color="red")
 
-# Function for R sqd
-RSQUARE = function(y_actual,y_predict){
-  cor(y_actual,y_predict)^2
-}
-
-
-
-# Finding best seed
-# seed_list <- c()
-# for (no in 0:1000){
-#   
-#   #Splitting into Train & Test Data
-#   set.seed(no)
-#   partition <- createDataPartition(y = df_learn$price, p=0.7, list=FALSE)
-#   trainingdata = df_learn[partition,]
-#   test <- df_learn[-partition,]
-#   
-#   # Splitting Training and Validatation data
-#   set.seed(no)
-#   partition_training <- createDataPartition(y=trainingdata$price, p=0.8, list=FALSE)
-#   training <- trainingdata[partition_training,]
-#   validation <- trainingdata[-partition_training,]
-#   
-#   set.seed(no)
-#   # Training the Linear Regression Model
-#   model <- lm(price ~ odometer + cylinders + transmission + year +
-#                 title_status + fuel + condition, data=training)
-#   
-#   r_sqd = summary(model)$r.squared
-#   seed_list <- c(seed_list,r_sqd)
-# }
-# max(seed_list)
+ 
 
 
-
-
-########## 
-set.seed(837)
-scaled_df_learn <- scale(df_learn)
-scaled_df_learn <- as.data.frame(scaled_df_learn)
-partition <- createDataPartition(y = scaled_df_learn$price, p=0.7, list=FALSE)
-trainingdata = scaled_df_learn[partition,]
-test <- scaled_df_learn[-partition,]
-
-# Splitting Training and Validatation data
-set.seed(837)
-partition_training <- createDataPartition(y=trainingdata$price, p=0.8, list=FALSE)
-training <- trainingdata[partition_training,]
-validation <- trainingdata[-partition_training,]
-
-set.seed(837)
-# Training the Linear Regression Model
-model <- lm(price ~ odometer + cylinders + transmission + year +
-              title_status + fuel + condition, data=training)
-
-r_sqd = summary(model)$r.squared
-summary(model)
 
 

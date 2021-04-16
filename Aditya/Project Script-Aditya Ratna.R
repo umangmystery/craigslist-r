@@ -1,3 +1,10 @@
+# Odometer is empty / is null 
+# Skewness check
+# Price category cut bins changed 
+# ODometer and price scatter plot 
+# 
+
+
 # installing required packages
 # install.packages("readxl")
 # install.packages("lubridate")
