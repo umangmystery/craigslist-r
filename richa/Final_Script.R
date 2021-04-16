@@ -431,8 +431,6 @@ var_1<-var(vehicle_1_sample$price)
 var_2<-var(vehicle_2_sample$price)
 
 z_test2(sample1,sample2,var_1,var_2)
-##As P_value < 0.05 we reject the null hypothesis, therefore price of two random samples generated from the data are not equal
-
 
 
 
