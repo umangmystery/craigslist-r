@@ -12,8 +12,10 @@
 #install.packages("maps")
 #install.packages("lubridate")
 #install.packages("e1071")
+#install.packages("readxl")
 
 library(skimr)
+library(readxl)
 library(tidyr)
 library(reshape2)
 library(tidyverse)
@@ -50,8 +52,6 @@ Vehicle_Data$size <- as.factor(Vehicle_Data$size)
 Vehicle_Data$type <- as.factor(Vehicle_Data$type)
 Vehicle_Data$state <- as.factor(Vehicle_Data$state)
 
-#Converting to date format
-Vehicle_Data$year <- ymd(Vehicle_Data$year, truncated = 2L)
 
 #Validating data in each column
 summary(Vehicle_Data)
@@ -59,6 +59,9 @@ summary(Vehicle_Data)
 # Skimming data to get good overview 
 #df_skimmed <- skim(Vehicle_Data)
 #view(df_skimmed)
+
+#Removing null values from the columns which we will need for hypothesis
+Vehicle_Data <- filter(Vehicle_Data, title_status!="", transmission!="",fuel!="",type!="",size!="",cylinders!="",drive!="",condition!="")
 
 
 # Getting rid of outliers for odometer rating and price
@@ -79,11 +82,9 @@ ggplot(Vehicle_Data, aes(x="", y = price)) +
   scale_y_continuous( labels = function(x) x / 1000) + # Dividing values by 1000 
   theme_minimal()
 
-#Checking null values
-sort(sapply(Vehicle_Data, function(x) sum(is.na(x))))
-unique(Vehicle_Data$condition)
-#Removing null values from the columns which we will need for hypothesis
-Vehicle_Data <- filter(Vehicle_Data, title_status!="", transmission!="",fuel!="",type!="",size!="",cylinders!="",drive!="",condition!="")
+
+#Converting to date format
+Vehicle_Data$year <- ymd(Vehicle_Data$year, truncated = 2L)
 
 
 #Getting full State Names
@@ -430,7 +431,7 @@ var_1<-var(vehicle_1_sample$price)
 var_2<-var(vehicle_2_sample$price)
 
 z_test2(sample1,sample2,var_1,var_2)
-##As P_value > 0.05 we fail to reject the null hypothesis, therefore price of two random samples generated from the data are equal
+##As P_value < 0.05 we reject the null hypothesis, therefore price of two random samples generated from the data are not equal
 
 
 
@@ -450,7 +451,7 @@ sample1<-vehicle_1_sample$odometer
 sample2<-vehicle_2_sample$odometer
 
 t.test(x=sample1,y=sample2)
-#As P_value > 0.05 we fail to reject the null hypothesis, therefore odometer of two random samples generated from the data are equal
+#As P_value < 0.05 we reject the null hypothesis, therefore odometer of two random samples generated from the data are not equal
 
 
 
