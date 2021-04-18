@@ -27,6 +27,8 @@ source("http://www.sthda.com/upload/rquery_cormat.r")
 # Set the directory to where the raw data and state names files are located
 setwd("C:\\Northeastern\\Probs & Stats\\Project")
 
+# Please DOWNLOAD the data from this link:
+# https://drive.google.com/drive/folders/1yc09YQO8TqQiVy3up4bLQMv79crh2gwh?usp=sharing
 
 # Importing the dataset
 cars_df <- read.csv('vehicles.csv', header = TRUE, sep=",")
@@ -68,7 +70,7 @@ ggplot(cars_df, aes(x="", y = odometer)) +
 
 ggplot(cars_df, aes(x="", y = price)) + 
   geom_boxplot(fill="#0c4c8a") +
-  labs(y = "Odometer in Thousands") +
+  labs(y = "Price in Thousands") +
   scale_y_continuous( labels = function(x) x / 1000) + # Dividing values by 1000 
   theme_minimal() 
 
@@ -146,19 +148,7 @@ ggplot(cars_df, aes(x=price)) +
   geom_histogram(fill="red",color="white",alpha=0.7,bins = 20)+
   ggtitle("Price Distribution")
 
-
-cars_df %>% 
-  dplyr::select(fuel, price) %>% 
-  group_by(fuel) %>% 
-  drop_na() %>% 
-  summarise(Avg = mean(price)) %>% 
-  arrange(desc(Avg)) %>% 
-  ggplot(aes(x=Avg, y=fuel)) + 
-  geom_bar(stat="identity", fill="dark green") +
-  xlab("Fuel Type") + ylab("Avg Price")
-
-
-
+# Price vs Cylinders
 cars_df %>% 
   dplyr::select(cylinders, price) %>% 
   group_by(cylinders) %>% 
@@ -169,6 +159,19 @@ cars_df %>%
   ggplot(aes(x=Avg, y=cylinders)) + 
   geom_bar(stat="identity", fill="dark green") +
   xlab("Number of Cylinders") + ylab("Avg Price")
+
+# Average price based on fuel type
+cars_df %>% 
+  dplyr::select(fuel, price) %>% 
+  group_by(fuel) %>% 
+  drop_na() %>% 
+  summarise(Avg = mean(price)) %>% 
+  arrange(desc(Avg)) %>% 
+  ggplot(aes(x=Avg, y=fuel)) + 
+  geom_bar(stat="identity", fill="dark orange") +
+  xlab("Fuel Type") + ylab("Avg Price") + 
+  geom_text(aes(label = round(Avg,3)),hjust=1, vjust = 2.0, size = 3, colour = "black")+
+  ggtitle("Average Price for Fuel Type")
 
 
 #bar graph for price based on condition of the car
@@ -380,7 +383,7 @@ joint_df
 #heat map for Joint freq of price and condition
 ggplot(joint_df,aes(x=Price, y=Condition, fill=frequency))+
   geom_tile()+scale_fill_distiller(palette = "YlGn", direction = 1) +geom_text(aes(label = frequency),hjust=1, vjust = 2.0, colour = "black")+
-  theme_light()+ggtitle("Joint freq Heat Map of price and condition")
+  theme_light()+ggtitle("Joint Probability Heat Map of price and condition")
 
 
 # calculating the coefficient
@@ -497,7 +500,7 @@ t.test(x=sample1,y=sample2)
 
 
 #4 Two sample t-test -
-# Question: Compare if the mean price of cars in ca is equivalent to the mean of cars in ny
+# Question: Compare if the mean price of cars in CA is equivalent to the mean of cars in NY
 #H0 -> sample mean 1 = sample mean 2 (difference is zero)
 #H1 -> sample mean 1 != sample mean 2
 
@@ -523,7 +526,7 @@ t.test(x=sample1,y=sample2)
 ##Question: Comparing the proportion of price of automatic with manual
 #H0 -> proportion 1 = proportion 2
 #H1 -> proportion 1 != proportion 2
-
+prop.test(x=c(vehicle_automatic, vehicle_manual),n=c(n1, n2))
 n1 <-length(which(cars_df$transmission == 'automatic'))
 n2 <-length(which(cars_df$transmission == 'manual'))
 
@@ -539,8 +542,8 @@ vehicle_manual <- cars_df %>%
 
 prop.test(x=c(vehicle_automatic, vehicle_manual),n=c(n1, n2))
 
-#As P_value < 0.05 we reject the null hypothesis, therefore proportion of price of automatic and manual are not equal
-#shows us that proportion of automatic to manual is different, further analysis can be done to know which transmission type is more prefered and y
+# As P_value > 0.05 we fail to reject the null hypothesis, therefore proportion of price of automatic and manual are equal
+# shows us that proportion of automatic to manual is similar
 
 
 
@@ -573,20 +576,16 @@ no_of_cy <- cars_df$cylinders
 head(no_of_cy)
 no_of_cy <- as_factor(no_of_cy)
 cars_df$cylinders <- as.numeric(no_of_cy)
-head(cars_df)
 
 cond <-as_factor(cars_df$condition)
 cars_df$condition <- as.numeric(cond)
-head(cars_df)
 
 
 status <- as_factor(cars_df$title_status)
 cars_df$title_status <- as.numeric(status)
-head(cars_df)
 
 trans <- as_factor(cars_df$transmission)
 cars_df$transmission <- as.numeric(trans)
-head(cars_df)
 
 fuel <- as_factor(cars_df$fuel)
 cars_df$fuel <- as.numeric(fuel)
